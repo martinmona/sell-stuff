@@ -21,6 +21,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "El archivo debe ser una imagen" }, { status: 400 })
     }
 
+    if (file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ message: "La imagen es demasiado grande. Máximo 10MB." }, { status: 413 })
+    }
+
     const blob = await put(file.name, file, {
       access: "public",
     })

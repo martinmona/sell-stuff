@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import imageCompression from "browser-image-compression"
 
 interface ImageUploadProps {
   onUpload: (url: string) => void
@@ -32,10 +33,23 @@ export function ImageUpload({ onUpload }: ImageUploadProps) {
     setLoading(true)
 
     try {
-      const formData = new FormData()
-      formData.append("file", file)
+      const options = {
+        maxSizeMB: 10,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        initialQuality: 0.8
+      }
 
-      console.log("Subiendo imagen:", file.name)
+      console.log("Comprimiendo imagen:", file.name, `Tamaño original: ${(file.size / 1024 / 1024).toFixed(2)}MB`)
+      
+      const compressedFile = await imageCompression(file, options)
+      
+      console.log("Imagen comprimida:", compressedFile.name, `Tamaño final: ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`)
+
+      const formData = new FormData()
+      formData.append("file", compressedFile)
+
+      console.log("Subiendo imagen comprimida...")
 
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -49,11 +63,11 @@ export function ImageUpload({ onUpload }: ImageUploadProps) {
       }
 
       console.log("Imagen subida con éxito:", data)
-      setSuccess(`Imagen "${file.name}" subida con éxito`)
+      setSuccess(`Imagen "${file.name}" subida con éxito (comprimida de ${(file.size / 1024 / 1024).toFixed(2)}MB a ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB)`)
       onUpload(data.url)
     } catch (err) {
       console.error("Error al subir imagen:", err)
-      setError("Error al subir la imagen")
+      setError(`Error al subir la imagen: ${err instanceof Error ? err.message : 'Error desconocido'}`)
     } finally {
       setLoading(false)
       // Limpiar el input
@@ -86,7 +100,7 @@ export function ImageUpload({ onUpload }: ImageUploadProps) {
             disabled={loading}
             className="w-full"
           />
-          {loading && <span className="text-sm text-muted-foreground">Subiendo...</span>}
+          {loading && <span className="text-sm text-muted-foreground">Comprimiendo y subiendo...</span>}
         </div>
       </div>
     </div>

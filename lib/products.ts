@@ -100,7 +100,7 @@ export async function updateProduct(id: number, product: Partial<Product>) {
     `
     UPDATE products
     SET name = $1, description = $2, price = $3, reserved = $4, updated_at = CURRENT_TIMESTAMP
-    WHERE id = $4
+    WHERE id = $5
   `,
     [product.name, product.description, product.price, product.reserved || false, id],
   )
