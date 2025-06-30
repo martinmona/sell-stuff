@@ -4,7 +4,6 @@ import { put } from "@vercel/blob"
 
 export async function POST(request: Request) {
   try {
-    // Verificar autenticación
     const authenticated = await isAuthenticated()
 
     if (!authenticated) {
@@ -18,16 +17,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "No se ha proporcionado ningún archivo" }, { status: 400 })
     }
 
-    // Validar tipo de archivo
     if (!file.type.startsWith("image/")) {
       return NextResponse.json({ message: "El archivo debe ser una imagen" }, { status: 400 })
     }
-
-    // Validar tamaño (máximo 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ message: "La imagen no debe superar los 5MB" }, { status: 400 })
-    }
-
 
     const blob = await put(file.name, file, {
       access: "public",
