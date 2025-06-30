@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { isAuthenticated } from "@/lib/auth"
-import { v4 as uuidv4 } from "uuid"
+import { put } from "@vercel/blob"
 
 export async function POST(request: Request) {
   try {
@@ -28,20 +28,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "La imagen no debe superar los 5MB" }, { status: 400 })
     }
 
-    // Generar un ID único para la imagen
-    const uniqueId = uuidv4()
-    const fileType = file.type.split("/")[1] // jpg, png, etc.
 
-    // Crear una URL de placeholder más específica según el tipo de archivo
-    let url = `/placeholder.svg?height=400&width=400&query=producto-${fileType}-${uniqueId.substring(0, 8)}`
+    const blob = await put(file.name, file, {
+      access: "public",
+    })
 
-    // Añadir información sobre el archivo original
-    const fileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
-    url += `&name=${fileName}`
+    console.log("Imagen subida con éxito a Vercel Blob:", blob.url)
 
-    console.log("Imagen subida con éxito:", url)
-
-    return NextResponse.json({ url })
+    return NextResponse.json({ url: blob.url })
   } catch (error) {
     console.error("Error al subir archivo:", error)
     return NextResponse.json({ message: "Error interno del servidor" }, { status: 500 })

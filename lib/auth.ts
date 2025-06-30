@@ -15,11 +15,7 @@ export async function verifyCredentials(username: string, password: string) {
     const user = result[0]
     if (!user) return false
 
-    // Comparar el hash de la contraseña proporcionada con el hash almacenado
     const hashedPassword = hashPassword(password)
-
-    // Para la contraseña "admin123", el hash SHA-256 es:
-    // "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"
     const match = user.password === hashedPassword
 
     return match ? user : false

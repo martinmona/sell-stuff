@@ -9,7 +9,7 @@ export function ReservedBadge({ reserved, className = "" }: ReservedBadgeProps) 
   if (!reserved) return null
 
   return (
-    <Badge variant="secondary" className={`bg-[#D55E43]/10 text-[#D55E43] hover:bg-[#D55E43]/20 ${className}`}>
+    <Badge variant="secondary" className={`bg-red-500 text-white hover:bg-red-600 font-semibold px-3 py-1 shadow-md ${className}`}>
       Reservado
     </Badge>
   )
