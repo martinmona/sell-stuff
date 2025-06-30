@@ -106,7 +106,12 @@ export function ProductForm({ product }: ProductFormProps) {
 
   const handleImageUpload = (url: string) => {
     console.log("Imagen subida:", url)
-    setImages([...images, url])
+    setImages(prev => [...prev, url])
+  }
+
+  const handleMultipleImageUpload = (urls: string[]) => {
+    console.log("Múltiples imágenes subidas:", urls)
+    setImages(prev => [...prev, ...urls])
   }
 
   const handleRemoveImage = (index: number) => {
@@ -178,7 +183,11 @@ export function ProductForm({ product }: ProductFormProps) {
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
               <Label>Imágenes del producto</Label>
-              <ImageUpload onUpload={handleImageUpload} />
+              <ImageUpload 
+                onUpload={handleImageUpload} 
+                onMultipleUpload={handleMultipleImageUpload}
+                multiple={true} 
+              />
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
                 {images.map((image, index) => (
