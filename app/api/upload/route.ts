@@ -27,6 +27,7 @@ export async function POST(request: Request) {
 
     const blob = await put(file.name, file, {
       access: "public",
+      addRandomSuffix: true,
     })
 
     console.log("Imagen subida con éxito a Vercel Blob:", blob.url)
@@ -34,6 +35,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: blob.url })
   } catch (error) {
     console.error("Error al subir archivo:", error)
-    return NextResponse.json({ message: "Error interno del servidor" }, { status: 500 })
+    
+    if (error instanceof Error) {
+      if (error.message.includes("This blob already exists")) {
+        return NextResponse.json({ message: "Ya existe un archivo con este nombre. Intenta de nuevo." }, { status: 409 })
+      }
+      if (error.message.includes("size limit")) {
+        return NextResponse.json({ message: "El archivo es demasiado grande para el servicio de almacenamiento." }, { status: 413 })
+      }
+    }
+    
+    return NextResponse.json({ message: "Error interno del servidor al subir la imagen" }, { status: 500 })
   }
 }
