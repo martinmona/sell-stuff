@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ImageModal } from "./image-modal"
 
 interface ImageCarouselProps {
   images: string[]
@@ -13,6 +14,8 @@ interface ImageCarouselProps {
 export function ImageCarousel({ images, productName }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loadedImages, setLoadedImages] = useState<string[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [showAmplifyText, setShowAmplifyText] = useState(false)
 
   // Efecto para cargar las imágenes y añadir un timestamp para evitar la caché
   useEffect(() => {
@@ -38,35 +41,76 @@ export function ImageCarousel({ images, productName }: ImageCarouselProps) {
     setCurrentIndex(slideIndex)
   }
 
+  const openModal = () => {
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+  }
+
   // Si no hay imágenes, mostrar un placeholder
   if (!loadedImages || loadedImages.length === 0) {
     return (
       <div className="relative w-full max-w-3xl mx-auto">
-        <div className="aspect-square relative overflow-hidden rounded-lg">
+        <div className="aspect-square relative overflow-hidden rounded-lg group">
           <Image
             src="/generic-product-display.png"
             alt={`${productName} - Sin imagen`}
             fill
-            className="object-contain"
+            className="object-contain transition-transform group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority
           />
+          
+          {/* Área clickeable para ampliar */}
+          <div 
+            className="absolute inset-x-20 inset-y-16 cursor-pointer z-10 flex items-center justify-center rounded-lg"
+            onClick={openModal}
+            onMouseEnter={() => setShowAmplifyText(true)}
+            onMouseLeave={() => setShowAmplifyText(false)}
+          >
+            <div className={`${showAmplifyText ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200 bg-white/90 text-black px-3 py-1 rounded-full text-sm font-medium pointer-events-none`}>
+              Click para ampliar
+            </div>
+          </div>
         </div>
+        
+        {/* Modal para el placeholder también */}
+        <ImageModal
+          images={["/generic-product-display.png"]}
+          initialIndex={0}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          productName={productName}
+        />
       </div>
     )
   }
 
   return (
     <div className="relative w-full max-w-3xl mx-auto">
-      <div className="aspect-square relative overflow-hidden rounded-lg">
+      <div className="aspect-square relative overflow-hidden rounded-lg group">
         <Image
           src={loadedImages[currentIndex] || "/placeholder.svg"}
           alt={`${productName} - Imagen ${currentIndex + 1}`}
           fill
-          className="object-contain"
+          className="object-contain transition-transform group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority
         />
+        
+        {/* Área clickeable para ampliar (solo el centro más pequeño) */}
+        <div 
+          className="absolute inset-x-20 inset-y-16 cursor-pointer z-10 flex items-center justify-center rounded-lg"
+          onClick={openModal}
+          onMouseEnter={() => setShowAmplifyText(true)}
+          onMouseLeave={() => setShowAmplifyText(false)}
+        >
+          <div className={`${showAmplifyText ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200 bg-white/90 text-black px-3 py-1 rounded-full text-sm font-medium pointer-events-none`}>
+            Click para ampliar
+          </div>
+        </div>
 
         {/* Botones de navegación */}
         {loadedImages.length > 1 && (
@@ -74,8 +118,11 @@ export function ImageCarousel({ images, productName }: ImageCarouselProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-background/80 hover:bg-background/90 rounded-full"
-              onClick={goToPrevious}
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-background/80 hover:bg-background/90 rounded-full z-20"
+              onClick={(e) => {
+                e.stopPropagation()
+                goToPrevious()
+              }}
             >
               <ChevronLeft className="h-6 w-6" />
               <span className="sr-only">Anterior</span>
@@ -84,8 +131,11 @@ export function ImageCarousel({ images, productName }: ImageCarouselProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-background/80 hover:bg-background/90 rounded-full"
-              onClick={goToNext}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-background/80 hover:bg-background/90 rounded-full z-20"
+              onClick={(e) => {
+                e.stopPropagation()
+                goToNext()
+              }}
             >
               <ChevronRight className="h-6 w-6" />
               <span className="sr-only">Siguiente</span>
@@ -107,6 +157,15 @@ export function ImageCarousel({ images, productName }: ImageCarouselProps) {
           ))}
         </div>
       )}
+
+      {/* Modal de imagen ampliada */}
+      <ImageModal
+        images={loadedImages}
+        initialIndex={currentIndex}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        productName={productName}
+      />
     </div>
   )
 }
